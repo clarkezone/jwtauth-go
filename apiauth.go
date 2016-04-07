@@ -19,7 +19,7 @@ type authProvider interface {
 	GenerateToken(userid string) (token string, err error)
 }
 
-func (a *ApiSecurity) RegisterAuthHandlers() {
+func (a *ApiSecurity) RegisterLoginHandlers() {
 	http.HandleFunc("/login", a.Login)
 }
 
@@ -35,6 +35,7 @@ func CreateApiSecurity(p userProvider) (instance *ApiSecurity) {
 
 func (a *ApiSecurity) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	err := r.ParseForm()
 	if err != nil {
 		fmt.Printf("error parsing form\n")
@@ -60,7 +61,7 @@ func (a *ApiSecurity) Login(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "%s", token)
+			fmt.Fprintf(w, `{"t":"%s"}`, token)
 		}
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)

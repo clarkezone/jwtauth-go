@@ -1,11 +1,13 @@
 package jwtauth
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
+	"fmt"
 	"net/http"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func RequireTokenAuthentication(fn http.HandlerFunc) http.HandlerFunc {
+func (a *ApiSecurity) RequireTokenAuthentication(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		token, err := jwt.ParseFromRequest(
 			r,
@@ -14,7 +16,13 @@ func RequireTokenAuthentication(fn http.HandlerFunc) http.HandlerFunc {
 			})
 
 		if err == nil && token.Valid {
+			roles := a.currentProvider.GetRoles(token.Claims["ID"].(string))
+			var rolesHeader string
+			for _, i := range roles {
+				rolesHeader += fmt.Sprintf("%v,", i)
+			}
 			r.Header.Add("userid", token.Claims["ID"].(string))
+			r.Header.Add("roles", rolesHeader)
 			fn(rw, r)
 		} else {
 			rw.WriteHeader(http.StatusUnauthorized)
@@ -22,7 +30,7 @@ func RequireTokenAuthentication(fn http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func CorsOptions(fn http.HandlerFunc) http.HandlerFunc {
+func (a *ApiSecurity) CorsOptions(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			rw.Header().Set("Access-Control-Allow-Headers", "accepts, authorization, content-type, x-api-applicationid, access-control-allow-origin")

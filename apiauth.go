@@ -2,8 +2,11 @@ package jwtauth
 
 import (
 	"fmt"
-	jwt "github.com/dgrijalva/jwt-go"
 	"net/http"
+	"strconv"
+	"strings"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type ApiSecurity struct {
@@ -13,6 +16,7 @@ type ApiSecurity struct {
 
 type userProvider interface {
 	Login(username string, password string) (result bool, userid string)
+	GetRoles(userid string) []int
 }
 
 type authProvider interface {
@@ -77,4 +81,26 @@ func UserFromToken(tokstring string) (id string) {
 	}
 	return ""
 
+}
+
+func IsInRole(roleid int, r *http.Request) bool {
+	//fmt.Printf("IsInRole:roleid %v\n", roleid)
+	hd := r.Header.Get("roles")
+	//fmt.Printf("IsInRole:header %v\n", hd)
+	roleString := strings.Split(hd, ",")
+	//fmt.Printf("IsInRole:fromheader %v\n", roleString)
+	for _, i := range roleString {
+		//fmt.Printf("i=%v\n", i)
+		role, err := strconv.Atoi(i)
+		if err == nil {
+			//fmt.Printf("IsInRole:compare %v %v\n", role, roleid)
+			if role == roleid {
+				//fmt.Printf("IsInRole:match\n")
+				return true
+			}
+		}
+	}
+
+	//fmt.Printf("IsInRole:nomatch\n")
+	return false
 }

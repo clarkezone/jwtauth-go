@@ -5,23 +5,26 @@ import (
 	"net/http"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	request "github.com/dgrijalva/jwt-go/request"
 )
 
 func (a *ApiSecurity) RequireTokenAuthentication(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		token, err := jwt.ParseFromRequest(
+		//token, err := jwt.ParseFromRequest(
+		token, err := request.ParseFromRequest(
 			r,
+			request.OAuth2Extractor,
 			func(token *jwt.Token) (interface{}, error) {
 				return privateKey, nil
 			})
 
 		if err == nil && token.Valid {
-			roles := a.currentProvider.GetRoles(token.Claims["ID"].(string))
+			roles := a.currentProvider.GetRoles(token.Claims.(jwt.MapClaims)["ID"].(string))
 			var rolesHeader string
 			for _, i := range roles {
 				rolesHeader += fmt.Sprintf("%v,", i)
 			}
-			r.Header.Add("userid", token.Claims["ID"].(string))
+			r.Header.Add("userid", token.Claims.(jwt.MapClaims)["ID"].(string))
 			r.Header.Add("roles", rolesHeader)
 			fn(rw, r)
 		} else {

@@ -77,7 +77,8 @@ func UserFromToken(tokstring string) (id string) {
 		return privateKey, nil
 	})
 	if err == nil && token.Valid {
-		return token.Claims["ID"].(string)
+		claims := token.Claims.(jwt.MapClaims)
+		return claims["ID"].(string)
 	}
 	return ""
 

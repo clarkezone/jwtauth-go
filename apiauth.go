@@ -27,6 +27,10 @@ func (a *ApiSecurity) RegisterLoginHandlers() {
 	http.HandleFunc("/login", a.Login)
 }
 
+func (a *ApiSecurity) RegisterLoginHandlerMux(mux *http.ServeMux) {
+	mux.HandleFunc("/login", a.Login)
+}
+
 func CreateApiSecurity(p userProvider) (instance *ApiSecurity) {
 	r := new(ApiSecurity)
 	r.currentProvider = p

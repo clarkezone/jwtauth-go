@@ -26,6 +26,8 @@ func (a *ApiSecurity) RequireTokenAuthentication(fn http.HandlerFunc) http.Handl
 			}
 			r.Header.Add("userid", token.Claims.(jwt.MapClaims)["ID"].(string))
 			r.Header.Add("roles", rolesHeader)
+			//todo: use context rather than headers for these
+			//r.Context().Value(f
 			fn(rw, r)
 		} else {
 			rw.WriteHeader(http.StatusUnauthorized)
